@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import json
 
-def portfolioAnalysis():
+def portfolioAnalysis(newsTitle, newsSubhead, newsContent, portfolio):
     with open('portfolio.json') as p:
         portfolios = json.load(p)
 
@@ -16,10 +16,10 @@ def portfolioAnalysis():
 
     response = client.models.generate_content(
         model="gemini-2.5-pro",
-        contents='''[SYSTEM PROMPT]Your sole purpose is to read news article information we provide you and generate the likelihood of portfolio affect as well as the sentiment. You will be provided with news article titles and text content. Provide a format as listed below with no other output.[\SYSTEM PROMPT]
-        [PORTFOLIO] ''' + portfolios + ''' [\PORTFOLIO]
-        [NEWS ARTICLE TITLE] [/NEWS ARTICLE TITLE]
-        [NEWS ARTICLE CONTENT] [/NEWS ARTICLE CONTENT]
+        contents=f'''[SYSTEM PROMPT]Your sole purpose is to read news article information we provide you and generate the likelihood of portfolio affect as well as the sentiment. You will be provided with news article titles and text content. Provide a format as listed below with no other output.[END SYSTEM PROMPT]
+        [PORTFOLIO] {portfolio} [END PORTFOLIO]
+        [NEWS ARTICLE TITLE] [END NEWS ARTICLE TITLE]
+        [NEWS ARTICLE CONTENT] [END NEWS ARTICLE CONTENT]
         
         [OUTPUT FORMAT]
         "<stock_1_ticker>":{
@@ -31,7 +31,7 @@ def portfolioAnalysis():
             "sentiment": <float -1(very negative) - 1(very positive)>
         },
         ...
-        [\OUTPUT FORMAT]''',
+        [END OUTPUT FORMAT]''',
     )
 
     print(response.content)
