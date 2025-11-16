@@ -1,82 +1,84 @@
 import os
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QMessageBox
-)
-from PySide6.QtGui import QFont
+from pathlib import Path
 
 ASCII_ART = r"""
-███╗   ██╗ ██████╗ ██╗   ██╗ █████╗ 
-████╗  ██║██╔═══██╗██║   ██║██╔══██╗
-██╔██╗ ██║██║   ██║██║   ██║███████║
-██║╚██╗██║██║   ██║██║   ██║██╔══██║
-██║ ╚████║╚██████╔╝╚██████╔╝██║  ██║
-╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
-        N   O   V   A
+ _   _                 _   _               
+| \ | | _____      __| \ | | _____      __
+|  \| |/ _ \ \ /\ / /|  \| |/ _ \ \ /\ / /
+| |\  |  __/\ V  V / | |\  |  __/\ V  V / 
+|_| \_|\___| \_/\_/  |_| \_|\___| \_/\_/  
+
+        N O V A   N E W S   S U I T E
 """
 
-ENV_PATH = ".env"
-
-def save_env(api_key, portfolio):
-    with open(ENV_PATH, "w") as f:
-        f.write(f"GEMINI_API_KEY={api_key}\n")
-        f.write(f"PORTFOLIO={portfolio}\n")
+ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
-def run_setup():
-    app = QApplication([])
-
-    window = QWidget()
-    window.setWindowTitle("NOVA Setup Wizard")
-    window.resize(600, 520)
-
-    layout = QVBoxLayout()
-
-    # ASCII art display
-    ascii_label = QLabel(ASCII_ART)
-    ascii_label.setFont(QFont("Courier", 11))
-    layout.addWidget(ascii_label)
-
-    # API label + input
-    api_label = QLabel("Enter your Gemini API key:")
-    api_label.setFont(QFont("Arial", 12))
-    api_input = QLineEdit()
-
-    layout.addWidget(api_label)
-    layout.addWidget(api_input)
-
-    # Portfolio label + input
-    portfolio_label = QLabel("Enter your portfolio (AAPL, MSFT, NVDA):")
-    portfolio_label.setFont(QFont("Arial", 12))
-    portfolio_input = QLineEdit()
-
-    layout.addWidget(portfolio_label)
-    layout.addWidget(portfolio_input)
-
-    # Button action
-    def save():
-        api_key = api_input.text().strip()
-        portfolio = portfolio_input.text().strip()
-
-        if not api_key or not portfolio:
-            QMessageBox.warning(window, "Error", "All fields must be filled out.")
-            return
-
-        save_env(api_key, portfolio)
-        QMessageBox.information(window, "Success", "Setup complete! .env created.")
-        window.close()
-
-    # Save button
-    save_btn = QPushButton("Save Configuration")
-    save_btn.setFont(QFont("Arial", 12))
-    save_btn.clicked.connect(save)
-
-    layout.addWidget(save_btn)
-
-    window.setLayout(layout)
-    window.show()
-    app.exec()
+def print_ascii_art() -> None:
+        print(ASCII_ART)
 
 
-if __name__ == "__main__":
-    run_setup()
+def prompt_gemini_key() -> str:
+    key = input("Enter your Gemini API key: ").strip()
+    return key
+
+
+def prompt_portfolio() -> str:
+    print("Enter your portfolio tickers as a comma-separated list, e.g. 'AAPL, MSFT, NVDA':")
+    portfolio = input("Portfolio: ").strip()
+    return portfolio
+
+
+def write_env(gemini_key: str, portfolio: str) -> None:
+    # This function updates (or creates) the .env file that lives at the
+    # project root. That way we don't need to retype things every run.
+    lines: list[str] = []
+    if ENV_PATH.exists():
+        with ENV_PATH.open("r") as f:
+            lines = f.readlines()
+
+    def upsert(key: str, value: str) -> None:
+        # Either update an existing line with this key or append a new one.
+        nonlocal lines
+        key_prefix = f"{key}="
+        for i, line in enumerate(lines):
+            if line.startswith(key_prefix):
+                lines[i] = f"{key}={value}\n"
+                break
+        else:
+            lines.append(f"{key}={value}\n")
+
+    upsert("GEMINI_API_KEY", gemini_key)
+    upsert("PORTFOLIO_TICKERS", portfolio)
+
+    with ENV_PATH.open("w") as f:
+        f.writelines(lines)
+
+    print(f"Configuration saved to {ENV_PATH}")
+
+
+def first_time_setup() -> tuple[str, list[str]]:
+    """Run the welcome wizard and return (api_key, portfolio_list)."""
+    print_ascii_art()
+    gemini_key = prompt_gemini_key()
+    portfolio_raw = prompt_portfolio()
+    write_env(gemini_key, portfolio_raw)
+
+    portfolio_list = [t.strip().upper() for t in portfolio_raw.split(",") if t.strip()]
+    return gemini_key, portfolio_list
+
+
+def load_from_env() -> tuple[str | None, list[str]]:
+    """Load API key and portfolio list from environment / .env if present."""
+    if ENV_PATH.exists():
+        with ENV_PATH.open("r") as f:
+            for line in f:
+                if line.startswith("GEMINI_API_KEY="):
+                    os.environ.setdefault("GEMINI_API_KEY", line.strip().split("=", 1)[1])
+                elif line.startswith("PORTFOLIO_TICKERS="):
+                    os.environ.setdefault("PORTFOLIO_TICKERS", line.strip().split("=", 1)[1])
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    portfolio_raw = os.getenv("PORTFOLIO_TICKERS", "")
+    portfolio_list = [t.strip().upper() for t in portfolio_raw.split(",") if t.strip()]
+    return api_key, portfolio_list

@@ -5,11 +5,11 @@ import time
 def scrape():
     driver = get_driver()
 
-    # CNBC latest news
+    # Go to CNBC latest news page
     driver.get("https://www.cnbc.com/latest/")
     time.sleep(2)
 
-    # Get first link
+    # Grab the first article link from the card layout
     first = driver.find_element(By.CSS_SELECTOR, "a.Card-title")
     url = first.get_attribute("href")
 
@@ -20,7 +20,7 @@ def scrape():
     # Headline
     headline = driver.find_element(By.CSS_SELECTOR, "h1.ArticleHeader-headline").text
 
-    # Subheader (optional)
+    # Subheader (optional, so we just ignore errors and default to empty)
     try:
         subheader = driver.find_element(By.CSS_SELECTOR, "div.ArticleHeader-subhead").text
     except:
@@ -44,6 +44,8 @@ def scrape():
 
     driver.quit()
 
+    # Normalize into a simple dict so the rest of the app doesn't need to
+    # know anything about CNBC's HTML structure.
     return {
         "headline": headline,
         "subheader": subheader,
