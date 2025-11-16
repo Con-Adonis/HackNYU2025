@@ -6,6 +6,7 @@ import time
 import schedule
 import logic.welcome as welcome
 from plyer import notification
+import parsing.novanews, parsing.cnbc
 
 def config():
     load_dotenv(override=True)
@@ -40,7 +41,8 @@ def main():
     config()
     
     #sleep loop
-    
+    schedule.every(10).seconds.do(parsing.novanews.scrape)
+    schedule.every(1).hours.do(parsing.cnbc.scrape)
     
     print("Portfolio Effect Analysis Output:")
     print(portfolioEffectAnalysis())
