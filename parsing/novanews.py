@@ -1,5 +1,5 @@
 from selenium.webdriver.common.by import By
-from driver import get_driver
+from .driver import get_driver
 import time
 import json
 import logic.bucketParser as bucketParser
