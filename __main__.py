@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from parsing.scraper import run_all
 import time
 import logic.welcome as welcome
+from plyer import notification
 
 PORTFOLIO_GLOBAL: list[str] = []  # tickers for this run
 
@@ -21,16 +22,23 @@ def config():
     print(api_key, portfolio_list)
 
 
+def show_stock_notification(title: str, message: str):
+    notification.notify(
+        title=title,
+        message=message,
+        timeout=5, 
+    )
+
+
 def main():
     #run the setup scripts
     welcome.main()
     config()
     
     #TODO: set sleep/scrape cycle
-    
-    #output = portfolioEffectAnalysis()
-    #print("Portfolio Effect Analysis Output:")
-    #print(output)
+    output = portfolioEffectAnalysis()
+    print("Portfolio Effect Analysis Output:")
+    print(output)
 
 
 def portfolioEffectAnalysis():
@@ -57,6 +65,12 @@ def portfolioEffectAnalysis():
             "Apple has announced the release of its latest iPhone model, which includes "
             "several new features and improvements over previous versions..."
         )
+
+    show_stock_notification(
+        title="Portfolio update",
+        message=(portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)[:230] + "...") if len(portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)) > 230 
+            else portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio),
+    )
 
     return portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)
 
