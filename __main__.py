@@ -3,10 +3,8 @@ import logic.portfolioEffect as portfolioEffect
 from dotenv import load_dotenv
 from parsing.scraper import run_all
 import time
+import schedule
 import logic.welcome as welcome
-
-PORTFOLIO_GLOBAL: list[str] = []  # tickers for this run
-
 
 def config():
     load_dotenv(override=True)
@@ -17,24 +15,23 @@ def config():
     except Exception as e:
         print("Error loading configuration from .env file:", e)
         exit(1)
-        
-    print(api_key, portfolio_list)
 
 
 def main():
     #run the setup scripts
-    welcome.main()
+    #welcome.main()
     config()
     
-    #TODO: set sleep/scrape cycle
+    #sleep loop
     
-    #output = portfolioEffectAnalysis()
-    #print("Portfolio Effect Analysis Output:")
-    #print(output)
+    
+    print("Portfolio Effect Analysis Output:")
+    print(portfolioEffectAnalysis())
 
 
 def portfolioEffectAnalysis():
-    portfolio = ", ".join(PORTFOLIO_GLOBAL) if PORTFOLIO_GLOBAL else "AAPL, MSFT, GOOGL"
+    load_dotenv()
+    portfolio = ", ".join(os.getenv("PORTFOLIO_TICKERS"))
 
     articles = run_all()
 
