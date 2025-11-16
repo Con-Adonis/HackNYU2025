@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-
 import logic.portfolioEffect as portfolioEffect
 from logic.welcome import load_from_env, first_time_setup
 from parsing.scraper import run_all
@@ -13,9 +12,6 @@ PORTFOLIO_GLOBAL: list[str] = []  # holds the user portfolio tickers for this ru
 
 
 def init_config() -> None:
-    """Initialize configuration from .env or run first-time setup.
-  Sets up GEMINI_API_KEY and PORTFOLIO_GLOBAL.
-    """
     load_dotenv()
     api_key, portfolio_list = load_from_env()
 
@@ -31,7 +27,7 @@ def init_config() -> None:
     PORTFOLIO_GLOBAL = portfolio_list
 
 
-def main() -> None:
+def main():
     """Entry point for the whole app.
 
     Right now this is basically:
