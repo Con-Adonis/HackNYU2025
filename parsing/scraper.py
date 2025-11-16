@@ -1,8 +1,3 @@
-"""
-scraper.py
-Runs all individual scrapers and saves their output as JSON.
-"""
-
 import json
 from .cnbc import scrape as scrape_cnbc
 from .novanews import scrape as scrape_nova

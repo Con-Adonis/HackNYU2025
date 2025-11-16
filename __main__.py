@@ -1,46 +1,39 @@
 import os
-from dotenv import load_dotenv
 import logic.portfolioEffect as portfolioEffect
-from logic.welcome import load_from_env, first_time_setup
+from dotenv import load_dotenv
 from parsing.scraper import run_all
+import time
+import logic.welcome as welcome
 
 PORTFOLIO_GLOBAL: list[str] = []  # tickers for this run
 
 
-def init_config() -> None:
-    """Initialize configuration from .env or run first-time setup.
-  Sets up GEMINI_API_KEY and PORTFOLIO_GLOBAL.
-    """
-    load_dotenv()
-    api_key, portfolio_list = load_from_env()
-
-    if not api_key or not portfolio_list:
-        api_key, portfolio_list = first_time_setup()
-        os.environ["GEMINI_API_KEY"] = api_key
-        os.environ["PORTFOLIO_TICKERS"] = ",".join(portfolio_list)
-
-    global PORTFOLIO_GLOBAL
-    PORTFOLIO_GLOBAL = portfolio_list
+def config():
+    load_dotenv(override=True)
+    try:
+        api_key = os.getenv("GEMINI_API_KEY")
+        portfolio_tickers = os.getenv("PORTFOLIO_TICKERS")
+        portfolio_list = [ticker.strip() for ticker in portfolio_tickers.split(",")]
+    except Exception as e:
+        print("Error loading configuration from .env file:", e)
+        exit(1)
+        
+    print(api_key, portfolio_list)
 
 
-def main() -> None:
-    """Entry point for the whole app.
-
-    Right now this is basically:
-      make sure config is ready
-      run the portfolio effect analysis once
-      rint whatever Gemini returns
-
-    Later we can add loops / scheduling here if we want this to run continuously.
-    """
-    init_config()
-    output = portfolioEffectAnalysis()
-    print("Portfolio Effect Analysis Output:")
-    print(output)
+def main():
+    #run the setup scripts
+    welcome.main()
+    config()
+    
+    #TODO: set sleep/scrape cycle
+    
+    #output = portfolioEffectAnalysis()
+    #print("Portfolio Effect Analysis Output:")
+    #print(output)
 
 
 def portfolioEffectAnalysis():
-    """Run scrapers and send combined news + portfolio to Gemini."""
     portfolio = ", ".join(PORTFOLIO_GLOBAL) if PORTFOLIO_GLOBAL else "AAPL, MSFT, GOOGL"
 
     articles = run_all()

@@ -3,29 +3,21 @@ import os
 from dotenv import load_dotenv
 import json
 
-
+### Analyze the article content and predict how it will affect the given portfolio.
 
 def portfolioAnalysis(newsTitle, newsContent, portfolio):
-    # Just printing the portfolio here so we can see what got passed in.
     print(portfolio)
 
     load_dotenv()
     apiKey = os.getenv("GEMINI_API_KEY")
 
     try:
-        # verbose=True can help debug if .env isn't being picked up.
         load_dotenv(verbose=True)
     except Exception as e:
         print("Error loading .env file:", e)
 
-    # Create the Gemini client using the API key we just loaded.
     client = genai.Client(api_key=apiKey)
 
-    # Build one big prompt that combines:
-    # a system-style instruction
-    # the user's portfolio
-    # the article title + content
-    # The model is asked to respond ONLY with JSON in a specific format.
     prompt = f"""
         [SYSTEM PROMPT]Your sole purpose is to read news article information we provide you and generate the likelihood of portfolio affect as well as the sentiment. You will be provided with news article titles and text content. Provide a format as listed below with no other output.[END SYSTEM PROMPT]
         [PORTFOLIO] {portfolio} [END PORTFOLIO]
