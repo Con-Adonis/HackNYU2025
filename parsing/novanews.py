@@ -4,6 +4,7 @@ import time
 import json
 import logic.bucketParser as bucketParser
 
+
 def scrape():
     driver = get_driver()
 
@@ -31,6 +32,6 @@ def scrape():
         content = "N/A"
 
     driver.quit()
-    
+
     #check if content has already been written to backlog
     return bucketParser.bucketParser(meta)
