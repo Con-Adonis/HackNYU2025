@@ -4,30 +4,26 @@ import logic.portfolioEffect as portfolioEffect
 from logic.welcome import load_from_env, first_time_setup
 from parsing.scraper import run_all
 
-#TODO: create and call welcome.py for initial bootup, portfolio entry, API entry
-#TODO: call the parsers after X time
-#TODO: if parsers find new material, implement logic analysis
-
-PORTFOLIO_GLOBAL: list[str] = []  # holds the user portfolio tickers for this run
+PORTFOLIO_GLOBAL: list[str] = []  # tickers for this run
 
 
 def init_config() -> None:
+    """Initialize configuration from .env or run first-time setup.
+  Sets up GEMINI_API_KEY and PORTFOLIO_GLOBAL.
+    """
     load_dotenv()
     api_key, portfolio_list = load_from_env()
 
-    # If we don't have an API key or a portfolio yet, ask the user for them.
     if not api_key or not portfolio_list:
         api_key, portfolio_list = first_time_setup()
-        # Make sure these are available to the rest of the app (and to Gemini client).
         os.environ["GEMINI_API_KEY"] = api_key
         os.environ["PORTFOLIO_TICKERS"] = ",".join(portfolio_list)
 
-    # Save the final portfolio (from env or from the wizard) into a global variable.
     global PORTFOLIO_GLOBAL
     PORTFOLIO_GLOBAL = portfolio_list
 
 
-def main():
+def main() -> None:
     """Entry point for the whole app.
 
     Right now this is basically:
@@ -44,35 +40,21 @@ def main():
 
 
 def portfolioEffectAnalysis():
-    """Glue function that connects scraping to the Gemini analysis.
+    """Run scrapers and send combined news + portfolio to Gemini."""
+    portfolio = ", ".join(PORTFOLIO_GLOBAL) if PORTFOLIO_GLOBAL else "AAPL, MSFT, GOOGL"
 
-    1.Pick a portfolio (user input if available, otherwise a default sample).
-    2.Run all scrapers to grab the latest articles.
-    3.Decide which articles to send to the model.
-    4.Call the Gemini-based portfolioEffect function and return its response.
-    """
-    # If the user gave us a portfolio, use that; otherwise fall back to a basic one.
-    if PORTFOLIO_GLOBAL:
-        portfolio = ", ".join(PORTFOLIO_GLOBAL)
-    else:
-        portfolio = "AAPL, MSFT, GOOGL"  # simple default portfolio
-
-    # Scrape latest articles from our sources.
     articles = run_all()
-
 
     nova_article = articles.get("NovaNews") if isinstance(articles, dict) else None
     cnbc_article = articles.get("CNBC") if isinstance(articles, dict) else None
 
     if nova_article and cnbc_article:
-        # If both scrapers succeed, merge their info into one combined input.
         newsTitle = f"{nova_article.get('headline', 'NovaNews')} & {cnbc_article.get('headline', 'CNBC')}"
         newsContent = (
             f"NovaNews: {nova_article.get('content', '')}\n\n"
             f"CNBC: {cnbc_article.get('content', '')}"
         )
     elif nova_article or cnbc_article:
-        # If only one article exists, just use that one.
         article = nova_article or cnbc_article
         newsTitle = article.get("headline", "Latest Market News")
         newsContent = article.get("content", "")
@@ -83,7 +65,6 @@ def portfolioEffectAnalysis():
             "several new features and improvements over previous versions..."
         )
 
-    # Send the final text to the Gemini-based analysis function.
     return portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)
 
 
