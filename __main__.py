@@ -5,6 +5,7 @@ from parsing.scraper import run_all
 import time
 import schedule
 import logic.welcome as welcome
+from plyer import notification
 
 def config():
     load_dotenv(override=True)
@@ -15,6 +16,22 @@ def config():
     except Exception as e:
         print("Error loading configuration from .env file:", e)
         exit(1)
+
+
+def show_stock_notification(title: str, message: str):
+    notification.notify(
+        title=title,
+        message=message,
+        timeout=5, 
+    )
+
+
+def show_stock_notification(title: str, message: str):
+    notification.notify(
+        title=title,
+        message=message,
+        timeout=5, 
+    )
 
 
 def main():
@@ -54,6 +71,12 @@ def portfolioEffectAnalysis():
             "Apple has announced the release of its latest iPhone model, which includes "
             "several new features and improvements over previous versions..."
         )
+
+    show_stock_notification(
+        title="Portfolio update",
+        message=(portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)[:230] + "...") if len(portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)) > 230 
+            else portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio),
+    )
 
     return portfolioEffect.portfolioAnalysis(newsTitle, newsContent, portfolio)
 
