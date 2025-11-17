@@ -7,6 +7,7 @@ def bucketParser(meta):
     headline = meta.get("title")
     print(headline)
 <<<<<<< HEAD
+<<<<<<< HEAD
     data = ''
     try:
         with open('backlog.json', "r+") as log:
@@ -20,10 +21,15 @@ def bucketParser(meta):
 
     for key,value in log():
 =======
+=======
+>>>>>>> parent of 2477850 (test)
     with open('.\\data\\backlog.json', "a+") as log:
         data = json.load(log)
 
     for key, value in data.items():
+<<<<<<< HEAD
+>>>>>>> parent of 2477850 (test)
+=======
 >>>>>>> parent of 2477850 (test)
         if headline == key:
             return False
